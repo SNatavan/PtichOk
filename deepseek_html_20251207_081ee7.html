@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PtichOk - Игра про птичек</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial Rounded MT Bold', 'Arial', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #87CEEB, #E0F7FF);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        
+        .game-container {
+            width: 100%;
+            max-width: 800px;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        header {
+            margin-bottom: 20px;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        h1 {
+            color: #FF6B6B;
+            font-size: 3.5rem;
+            text-shadow: 3px 3px 0 #FFD166, 6px 6px 0 rgba(0,0,0,0.1);
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #06D6A0;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        
+        .game-wrapper {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            border: 5px solid #FFD166;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        canvas {
+            display: block;
+            margin: 0 auto;
+            border-radius: 10px;
+            background: linear-gradient(to bottom, #87CEEB 0%, #E0F7FF 100%);
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .stats-panel {
+            display: flex;
+            justify-content: space-between;
+            margin: 15px 0;
+            background: #FFD166;
+            padding: 15px;
+            border-radius: 15px;
+            color: #333;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .stat-value {
+            font-size: 1.8rem;
+            color: #EF476F;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: #333;
+        }
+        
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        #startBtn {
+            background: linear-gradient(to right, #06D6A0, #04B57A);
+            color: white;
+        }
+        
+        #pauseBtn {
+            background: linear-gradient(to right, #FFD166, #FFC043);
+            color: #333;
+        }
+        
+        #resetBtn {
+            background: linear-gradient(to right, #EF476F, #D43A5E);
+            color: white;
+        }
+        
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+        }
+        
+        button:active {
+            transform: translateY(1px);
+        }
+        
+        .instructions {
+            background: rgba(255, 255, 255, 0.9);
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 15px;
+            border-left: 5px solid #118AB2;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .instructions h3 {
+            color: #118AB2;
+            margin-bottom: 10px;
+        }
+        
+        .instructions p {
+            color: #555;
+            margin-bottom: 5px;
+        }
+        
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            border: 5px solid #EF476F;
+            z-index: 10;
+            display: none;
+        }
+        
+        .game-over h2 {
+            color: #EF476F;
+            margin-bottom: 15px;
+            font-size: 2.5rem;
+        }
+        
+        .bird-icon {
+            font-size: 3rem;
+            margin: 10px 0;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        @keyframes flap {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-5px) rotate(-10deg); }
+        }
+        
+        .cloud {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            opacity: 0.8;
+            z-index: -1;
+        }
+        
+        .cloud:nth-child(1) {
+            width: 120px;
+            height: 60px;
+            top: 10%;
+            left: 5%;
+        }
+        
+        .cloud:nth-child(2) {
+            width: 180px;
+            height: 80px;
+            top: 20%;
+            right: 10%;
+        }
+        
+        .cloud:nth-child(3) {
+            width: 100px;
+            height: 50px;
+            bottom: 15%;
+            left: 15%;
+        }
+        
+        @media (max-width: 600px) {
+            .game-container {
+                padding: 10px;
+            }
+            
+            h1 {
+                font-size: 2.5rem;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+            
+            canvas {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Облака для фона -->
+    <div class="cloud"></div>
+    <div class="cloud"></div>
+    <div class="cloud"></div>
+    
+    <div class="game-container">
+        <header>
+            <h1>PtichOk</h1>
+            <div class="subtitle">Птички в полёте!</div>
+        </header>
+        
+        <div class="game-wrapper">
+            <canvas id="gameCanvas" width="750" height="500"></canvas>
+            
+            <div class="stats-panel">
+                <div class="stat-item">
+                    <div class="stat-value" id="score">0</div>
+                    <div class="stat-label">ОЧКИ</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="level">1</div>
+                    <div class="stat-label">УРОВЕНЬ</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="lives">3</div>
+                    <div class="stat-label">ПТИЧКИ</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="highScore">0</div>
+                    <div class="stat-label">РЕКОРД</div>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <button id="startBtn">СТАРТ</button>
+                <button id="pauseBtn">ПАУЗА</button>
+                <button id="resetBtn">ЗАНОВО</button>
+            </div>
+            
+            <div class="instructions">
+                <h3>Как играть?</h3>
+                <p>🔼 ПРОБЕЛ или КЛИК - Поднять птичку вверх</p>
+                <p>🔽 Не нажимать - Птичка падает вниз</p>
+                <p>🎯 Собирайте фрукты и избегайте препятствий!</p>
+            </div>
+        </div>
+        
+        <div id="gameOver" class="game-over">
+            <h2>ПТИЧКА УЛЕТЕЛА!</h2>
+            <div class="bird-icon">🐦</div>
+            <p>Ваш результат: <span id="finalScore">0</span> очков</p>
+            <p>Рекорд: <span id="finalHighScore">0</span> очков</p>
+            <button id="restartBtn" style="margin-top: 20px;">ИГРАТЬ СНОВА</button>
+        </div>
+    </div>
+
+    <script>
+        // Элементы игры
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreElement = document.getElementById('score');
+        const levelElement = document.getElementById('level');
+        const livesElement = document.getElementById('lives');
+        const highScoreElement = document.getElementById('highScore');
+        const startBtn = document.getElementById('startBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const gameOverScreen = document.getElementById('gameOver');
+        const finalScoreElement = document.getElementById('finalScore');
+        const finalHighScoreElement = document.getElementById('finalHighScore');
+        const restartBtn = document.getElementById('restartBtn');
+
+        // Константы игры
+        const GRAVITY = 0.5;
+        const FLAP_STRENGTH = -12;
+        const PIPE_WIDTH = 80;
+        const PIPE_GAP = 180;
+        const BIRD_SIZE = 40;
+        const FRUIT_SIZE = 30;
+        const GAME_SPEED = 5;
+
+        // Состояние игры
+        let game = {
+            bird: {
+                x: 100,
+                y: canvas.height / 2,
+                velocity: 0,
+                color: '#FF6B6B',
+                wingAngle: 0
+            },
+            pipes: [],
+            fruits: [],
+            score: 0,
+            highScore: localStorage.getItem('ptichokHighScore') || 0,
+            level: 1,
+            lives: 3,
+            gameOver: false,
+            isRunning: false,
+            isPaused: false,
+            frameCount: 0,
+            pipeFrequency: 120,
+            fruitFrequency: 80
+        };
+
+        // Инициализация высокого счета
+        highScoreElement.textContent = game.highScore;
+
+        // Класс для препятствий (ветки)
+        class Pipe {
+            constructor() {
+                this.x = canvas.width;
+                this.width = PIPE_WIDTH;
+                this.gapPosition = Math.random() * (canvas.height - PIPE_GAP - 100) + 50;
+                this.color = `hsl(${Math.random() * 60 + 100}, 70%, 40%)`;
+                this.passed = false;
+            }
+            
+            draw() {
+                // Верхняя ветка
+                ctx.fillStyle = this.color;
+                ctx.fillRect(this.x, 0, this.width, this.gapPosition);
+                
+                // Нижняя ветка
+                ctx.fillRect(this.x, this.gapPosition + PIPE_GAP, this.width, canvas.height);
+                
+                // Украшение веток
+                ctx.fillStyle = '#8B4513';
+                ctx.fillRect(this.x - 5, this.gapPosition - 10, this.width + 10, 10);
+                ctx.fillRect(this.x - 5, this.gapPosition + PIPE_GAP, this.width + 10, 10);
+            }
+            
+            update() {
+                this.x -= GAME_SPEED + game.level * 0.5;
+                return this.x + this.width < 0;
+            }
+            
+            checkCollision(bird) {
+                return (
+                    bird.x + BIRD_SIZE > this.x &&
+                    bird.x < this.x + this.width &&
+                    (bird.y < this.gapPosition || bird.y + BIRD_SIZE > this.gapPosition + PIPE_GAP)
+                );
+            }
+        }
+
+        // Класс для фруктов
+        class Fruit {
+            constructor() {
+                this.x = canvas.width;
+                this.y = Math.random() * (canvas.height - FRUIT_SIZE - 50) + 25;
+                this.type = Math.floor(Math.random() * 3);
+                this.colors = ['#FFD166', '#EF476F', '#06D6A0'];
+                this.rotation = 0;
+            }
+            
+            draw() {
+                ctx.save();
+                ctx.translate(this.x + FRUIT_SIZE/2, this.y + FRUIT_SIZE/2);
+                ctx.rotate(this.rotation);
+                
+                // Рисуем фрукт
+                ctx.fillStyle = this.colors[this.type];
+                ctx.beginPath();
+                ctx.arc(0, 0, FRUIT_SIZE/2, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Детали фрукта
+                ctx.fillStyle = this.type === 0 ? '#FF9500' : this.type === 1 ? '#8B0000' : '#028A5F';
+                ctx.beginPath();
+                if (this.type === 0) {
+                    // Яблоко - черенок
+                    ctx.fillRect(-2, -FRUIT_SIZE/2, 4, 8);
+                } else if (this.type === 1) {
+                    // Вишня - два фрукта
+                    ctx.beginPath();
+                    ctx.arc(-8, -5, 6, 0, Math.PI * 2);
+                    ctx.arc(8, -5, 6, 0, Math.PI * 2);
+                    ctx.fill();
+                } else {
+                    // Киви - семечки
+                    for (let i = 0; i < 8; i++) {
+                        let angle = (i / 8) * Math.PI * 2;
+                        let x = Math.cos(angle) * 8;
+                        let y = Math.sin(angle) * 8;
+                        ctx.beginPath();
+                        ctx.arc(x, y, 2, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+                
+                ctx.restore();
+            }
+            
+            update() {
+                this.x -= GAME_SPEED + game.level * 0.5;
+                this.rotation += 0.05;
+                return this.x + FRUIT_SIZE < 0;
+            }
+            
+            checkCollision(bird) {
+                const dx = (this.x + FRUIT_SIZE/2) - (bird.x + BIRD_SIZE/2);
+                const dy = (this.y + FRUIT_SIZE/2) - (bird.y + BIRD_SIZE/2);
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                return distance < (FRUIT_SIZE/2 + BIRD_SIZE/2);
+            }
+        }
+
+        // Рисование птички
+        function drawBird() {
+            ctx.save();
+            ctx.translate(game.bird.x + BIRD_SIZE/2, game.bird.y + BIRD_SIZE/2);
+            
+            // Тело птички
+            ctx.fillStyle = game.bird.color;
+            ctx.beginPath();
+            ctx.ellipse(0, 0, BIRD_SIZE/2, BIRD_SIZE/2.5, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Крылья
+            ctx.fillStyle = '#FF8E8E';
+            ctx.save();
+            ctx.rotate(Math.sin(game.bird.wingAngle) * 0.5);
+            ctx.beginPath();
+            ctx.ellipse(-10, 0, 15, 10, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+            
+            // Глаз
+            ctx.fillStyle = 'white';
+            ctx.beginPath();
+            ctx.arc(15, -5, 8, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.fillStyle = 'black';
+            ctx.beginPath();
+            ctx.arc(17, -5, 4, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Клюв
+            ctx.fillStyle = '#FFD166';
+            ctx.beginPath();
+            ctx.moveTo(25, 0);
+            ctx.lineTo(40, 0);
+            ctx.lineTo(25, 10);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Хвост
+            ctx.fillStyle = '#FF8E8E';
+            ctx.beginPath();
+            ctx.moveTo(-25, 0);
+            ctx.lineTo(-35, -10);
+            ctx.lineTo(-35, 10);
+            ctx.closePath();
+            ctx.fill();
+            
+            ctx.restore();
+            
+            // Анимация крыльев
+            game.bird.wingAngle += 0.3;
+        }
+
+        // Обновление птички
+        function updateBird() {
+            game.bird.velocity += GRAVITY;
+            game.bird.y += game.bird.velocity;
+            
+            // Ограничение птички экраном
+            if (game.bird.y < 0) {
+                game.bird.y = 0;
+                game.bird.velocity = 0;
+            }
+            if (game.bird.y + BIRD_SIZE > canvas.height) {
+                game.bird.y = canvas.height - BIRD_SIZE;
+                game.bird.velocity = 0;
+                loseLife();
+            }
+        }
+
+        // Взмах птички
+        function flap() {
+            if (game.isRunning && !game.gameOver) {
+                game.bird.velocity = FLAP_STRENGTH;
+            }
+        }
+
+        // Потеря жизни
+        function loseLife() {
+            if (game.lives > 0) {
+                game.lives--;
+                livesElement.textContent = game.lives;
+                
+                // Мигание птички
+                game.bird.color = '#FF0000';
+                setTimeout(() => {
+                    if (!game.gameOver) game.bird.color = '#FF6B6B';
+                }, 300);
+                
+                // Сброс позиции
+                game.bird.y = canvas.height / 2;
+                game.bird.velocity = 0;
+                
+                if (game.lives === 0) {
+                    endGame();
+                }
+            }
+        }
+
+        // Генерация препятствий
+        function generatePipes() {
+            if (game.frameCount % game.pipeFrequency === 0) {
+                game.pipes.push(new Pipe());
+            }
+        }
+
+        // Генерация фруктов
+        function generateFruits() {
+            if (game.frameCount % game.fruitFrequency === 0) {
+                game.fruits.push(new Fruit());
+            }
+        }
+
+        // Обновление игры
+        function updateGame() {
+            if (!game.isRunning || game.gameOver || game.isPaused) return;
+            
+            game.frameCount++;
+            
+            // Обновление птички
+            updateBird();
+            
+            // Генерация объектов
+            generatePipes();
+            generateFruits();
+            
+            // Обновление препятствий
+            for (let i = game.pipes.length - 1; i >= 0; i--) {
+                const pipe = game.pipes[i];
+                
+                // Проверка прохождения препятствия
+                if (!pipe.passed && pipe.x + pipe.width < game.bird.x) {
+                    pipe.passed = true;
+                    game.score += 10 * game.level;
+                    scoreElement.textContent = game.score;
+                    
+                    // Повышение уровня каждые 100 очков
+                    game.level = Math.floor(game.score / 100) + 1;
+                    levelElement.textContent = game.level;
+                    
+                    // Увеличение частоты препятствий
+                    game.pipeFrequency = Math.max(60, 120 - game.level * 5);
+                }
+                
+                // Проверка столкновения
+                if (pipe.checkCollision(game.bird)) {
+                    loseLife();
+                }
+                
+                // Удаление вышедших за экран препятствий
+                if (pipe.update()) {
+                    game.pipes.splice(i, 1);
+                }
+            }
+            
+            // Обновление фруктов
+            for (let i = game.fruits.length - 1; i >= 0; i--) {
+                const fruit = game.fruits[i];
+                
+                // Проверка сбора фрукта
+                if (fruit.checkCollision(game.bird)) {
+                    game.fruits.splice(i, 1);
+                    game.score += 20 * game.level;
+                    scoreElement.textContent = game.score;
+                    continue;
+                }
+                
+                // Удаление вышедших за экран фруктов
+                if (fruit.update()) {
+                    game.fruits.splice(i, 1);
+                }
+            }
+        }
+
+        // Отрисовка игры
+        function drawGame() {
+            // Очистка канваса
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Фон
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#87CEEB');
+            gradient.addColorStop(1, '#E0F7FF');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Облака на фоне
+            drawBackgroundClouds();
+            
+            // Рисование объектов
+            game.pipes.forEach(pipe => pipe.draw());
+            game.fruits.forEach(fruit => fruit.draw());
+            drawBird();
+            
+            // Отображение паузы
+            if (game.isPaused) {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 40px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('ПАУЗА', canvas.width / 2, canvas.height / 2);
+            }
+        }
+
+        // Рисование облаков на фоне
+        function drawBackgroundClouds() {
+            const time = Date.now() * 0.001;
+            
+            for (let i = 0; i < 3; i++) {
+                const x = (canvas.width + (time * 20 + i * 100) % (canvas.width + 200)) - 100;
+                const y = 50 + i * 120;
+                
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                ctx.beginPath();
+                ctx.arc(x, y, 25, 0, Math.PI * 2);
+                ctx.arc(x + 20, y - 10, 30, 0, Math.PI * 2);
+                ctx.arc(x + 40, y, 25, 0, Math.PI * 2);
+                ctx.arc(x + 20, y + 10, 20, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // Игровой цикл
+        function gameLoop() {
+            updateGame();
+            drawGame();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Начало игры
+        function startGame() {
+            if (game.gameOver) {
+                resetGame();
+            }
+            
+            game.isRunning = true;
+            game.isPaused = false;
+            startBtn.textContent = 'РЕСТАРТ';
+            pauseBtn.textContent = 'ПАУЗА';
+            gameOverScreen.style.display = 'none';
+        }
+
+        // Пауза/продолжение
+        function togglePause() {
+            if (!game.isRunning || game.gameOver) return;
+            
+            game.isPaused = !game.isPaused;
+            pauseBtn.textContent = game.isPaused ? 'ПРОДОЛЖИТЬ' : 'ПАУЗА';
+        }
+
+        // Сброс игры
+        function resetGame() {
+            game = {
+                bird: {
+                    x: 100,
+                    y: canvas.height / 2,
+                    velocity: 0,
+                    color: '#FF6B6B',
+                    wingAngle: 0
+                },
+                pipes: [],
+                fruits: [],
+                score: 0,
+                highScore: game.highScore,
+                level: 1,
+                lives: 3,
+                gameOver: false,
+                isRunning: false,
+                isPaused: false,
+                frameCount: 0,
+                pipeFrequency: 120,
+                fruitFrequency: 80
+            };
+            
+            scoreElement.textContent = '0';
+            levelElement.textContent = '1';
+            livesElement.textContent = '3';
+            highScoreElement.textContent = game.highScore;
+            
+            startBtn.textContent = 'СТАРТ';
+            pauseBtn.textContent = 'ПАУЗА';
+            gameOverScreen.style.display = 'none';
+        }
+
+        // Завершение игры
+        function endGame() {
+            game.gameOver = true;
+            game.isRunning = false;
+            
+            // Обновление рекорда
+            if (game.score > game.highScore) {
+                game.highScore = game.score;
+                localStorage.setItem('ptichokHighScore', game.highScore);
+                highScoreElement.textContent = game.highScore;
+            }
+            
+            // Показ экрана завершения
+            finalScoreElement.textContent = game.score;
+            finalHighScoreElement.textContent = game.highScore;
+            gameOverScreen.style.display = 'block';
+        }
+
+        // Обработчики событий
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' || e.key === ' ') {
+                e.preventDefault();
+                flap();
+            }
+            
+            if (e.code === 'KeyP') {
+                togglePause();
+            }
+            
+            if (e.code === 'KeyR') {
+                resetGame();
+            }
+        });
+
+        canvas.addEventListener('click', flap);
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            flap();
+        });
+
+        startBtn.addEventListener('click', startGame);
+        pauseBtn.addEventListener('click', togglePause);
+        resetBtn.addEventListener('click', resetGame);
+        restartBtn.addEventListener('click', startGame);
+
+        // Запуск игрового цикла
+        gameLoop();
+
+        // Автоматическое создание первого облака
+        setInterval(() => {
+            if (game.isRunning && !game.gameOver && !game.isPaused) {
+                // Случайное создание фрукта или препятствия
+                if (Math.random() > 0.7) {
+                    game.fruits.push(new Fruit());
+                }
+            }
+        }, 2000);
+    </script>
+</body>
+</html>
